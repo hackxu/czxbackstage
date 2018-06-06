@@ -1,0 +1,261 @@
+import React from 'react';
+import { Form, Input, Button, Table } from 'antd'
+import { observable } from 'mobx';
+import { observer } from 'mobx-react';
+// import store from '../store/index'
+import service from '../http/http'
+
+const FormItem = Form.Item;
+
+const columns = [{
+    title: 'Name',
+    dataIndex: 'name',
+    sorter: true,
+    render: name => `${name.first} ${name.last}`,
+    width: '20%',
+}, {
+    title: 'Gender',
+    dataIndex: 'gender',
+    filters: [
+        { text: 'Male', value: 'male' },
+        { text: 'Female', value: 'female' },
+    ],
+    width: '20%',
+}, {
+    title: 'Email',
+    dataIndex: 'email',
+},
+{
+    title: "操作",
+    dataIndex: "",
+    key: "x",
+    render: () => (<div><a href="javascript:;">编辑</a> <a style={{ marginLeft: 10 }} href="javascript:;">删除</a> </div>)
+}
+
+];
+const columnss = [
+    {
+        title: '标题',
+        dataIndex: 'title',
+        key: 'title',
+    },
+    {
+        title: '类型标题',
+        dataIndex: 'typetitle',
+        key: 'typetitle',
+    },
+    {
+        title: '类型',
+        dataIndex: 'type',
+        key: 'type',
+    },
+    {
+        title: '顺序',
+        dataIndex: 'index',
+        key: 'index',
+    },
+    {
+        title: '背景图',
+        dataIndex: 'backgroundimg',
+        key: 'backgroundimg',
+        width: "120px",
+        render: (e) => <img src={e} />
+    },
+    {
+        title: "操作",
+        dataIndex: "",
+        key: "x",
+        render: () => (<div><a href="javascript:;">编辑</a> <a href="javascript:;">删除</a> </div>)
+    }
+];
+
+
+class BannerManageData {
+    @observable isLogin = false
+    @observable token = "";
+}
+const BannerManageStore = new BannerManageData()
+
+
+@observer
+class BannerManage extends React.Component {
+    @observable tabledata = {
+        data: [],
+        pagination: {
+            pageSize: 10,
+            total: 0,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            // // 展示数目
+            // onShowSizeChange: (current, pageSize) => {
+            //     console.log(current)
+            //     console.log(pageSize)
+            // },
+            // // 跳页
+            // onChange: (pageNumber) => {
+            //     console.log(pageNumber)
+            // }
+        },
+        loading: false
+    }
+
+    @observable selectedRowKeys = []
+    @observable inSearch = false
+
+    gettabledata = (params = {}) => {
+        this.tabledata.loading = true
+        var that = this;
+        if (params.inSearch === true) {
+            that.inSearch = params.title
+            that.tabledata.pagination.current = params.page
+        }
+        // console.log(params)
+
+        service.get('https://randomuser.me/api', {
+            params: {
+                results: 10,
+                ...params
+            }
+        })
+            .then(function (response) {
+                console.log(response);
+                const pagination = { ...that.tabledata.pagination }
+                // console.log(pagination)
+                // pagination.total = response.data.total;
+                pagination.total = 200;
+                that.tabledata = {
+                    loading: false,
+                    data: response.results,
+                    pagination: pagination
+                }
+
+
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+    }
+    componentDidMount() {
+        this.gettabledata()
+    }
+    handleRemovetr = (data = {}) => {
+        // this.gettabledata(data)
+        console.log(BannerManageStore)
+    }
+    onSelectChange = (selectedRowKeys, selectedRows) => {
+        this.selectedRowKeys = selectedRowKeys
+        console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+    }
+
+    handleTableChange = (pagination, filters, sorter) => {
+        let that = this;
+        const pager = { ...pagination };
+        pager.current = pagination.current;
+        this.tabledata.pagination = pager;
+        console.log(this.tabledata.pagination)
+        console.log(this.inSearch)
+        this.gettabledata({
+            results: pagination.pageSize,
+            page: pagination.current,
+            sortField: sorter.field,
+            sortOrder: sorter.order,
+            searchTitle: that.inSearch ? that.inSearch : "",
+            ...filters,
+        })
+    }
+
+    render() {
+
+        const selectedRowKeys = this.selectedRowKeys.slice();
+        // console.log(selectedRowKeys)
+        const rowSelection = {
+            selectedRowKeys,
+            onChange: this.onSelectChange,
+            // getCheckboxProps: record => (
+
+            //     {
+            //         disabled: record.name === 'Disabled User', // Column configuration not to be checked
+            //         name: record.name,
+            //     }),
+        };
+
+        const hasSelected = selectedRowKeys.length > 0;
+        return (
+            <div className="commontable">
+                <CustomTopFunctionForm tabledata={this.tabledata} onReciveData={this.gettabledata} />
+                <div style={{ marginBottom: 12 }}>
+                    <Button type="primary" icon="plus" >添加</Button>
+                    {hasSelected ? <Button style={{ marginLeft: 20 }} type="primary" onClick={this.handleRemovetr} >批量删除</Button> : ''}
+                </div>
+                <Table loading={this.tabledata.loading}
+                    rowKey={record => record.cell}
+                    rowSelection={rowSelection}
+                    pagination={this.tabledata.pagination}
+                    dataSource={this.tabledata.data.slice()}
+                    columns={columns}
+                    onChange={this.handleTableChange}
+                    onRow={(record) => {
+                        return {
+                            onClick: () => {
+                                console.log(record)
+                            }
+                        }
+                    }}
+                ></Table>
+            </div>
+        )
+    }
+}
+
+
+class TopFunctionForm extends React.Component {
+    handleReset = (e) => {
+        console.log(e)
+        this.props.form.resetFields()
+    }
+    handleSubmit = (e) => {
+        var that = this;
+
+        e.preventDefault();
+        this.props.form.validateFieldsAndScroll((err, values) => {
+            if (!err) {
+                // console.log('Received values of form: ', values);
+                console.log(that.props.tabledata.pagination)
+                const pagination = { ...that.props.tabledata.pagination }
+                that.props.onReciveData({
+                    results: pagination.pageSize,
+                    title: values.title,
+                    inSearch: true,
+                    page: 1,
+                })
+
+            }
+        });
+    }
+    render() {
+        const { getFieldDecorator } = this.props.form;
+        // console.log(this.props)
+        return (
+            <div className="topfunction">
+
+                <Form onSubmit={this.handleSubmit} onReset={this.handleReset}>
+                    <FormItem label="标题">
+                        {getFieldDecorator('title', {
+                            rules: [{ required: true, message: '请输入要搜索的标题' }],
+                        })(
+                            <Input placeholder="请输入标题" />
+                        )}
+
+                    </FormItem>
+                    <Button type="primary" htmlType="submit">查询</Button>
+                    {/* <Button type="default" htmlType="reset">重置</Button> */}
+                </Form>
+
+            </div>
+        )
+    }
+}
+
+const CustomTopFunctionForm = Form.create()(TopFunctionForm);
+
+export default BannerManage
