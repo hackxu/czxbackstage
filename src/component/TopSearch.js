@@ -1,13 +1,10 @@
 import React from "react";
 import {Form, Input, Button} from 'antd'
-import {observable, } from 'mobx';
-import {observer} from 'mobx-react';
 
 const FormItem = Form.Item;
 
 class TopFunctionForm extends React.Component {
     handleReset = (e) => {
-        let that = this
         this.props.form.resetFields()
         const pagination = {...this.props.tabledata.pagination}
         console.log(pagination)

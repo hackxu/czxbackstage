@@ -26,14 +26,13 @@ function beforeUpload(file) {
 class UploadImg extends React.Component {
     @observable loading = false
     @observable imageUrl = ""
-    @observable webImgUrl = ""
 
     handleChange = (info) => {
 
         let fileList = info.fileList;
 
         fileList = fileList.slice(-2)
-
+        console.log(fileList)
         if (info.file.status === 'uploading') {
             this.loading = true
             return;
@@ -41,13 +40,13 @@ class UploadImg extends React.Component {
         if (info.file.status === 'error') {
             this.loading = false;
             this.imageUrl = ""
-            this.webImgUrl = ""
             message.error("上传失败")
             return;
         }
         if (info.file.status === 'done') {
             console.log(info)
-            this.webImgUrl = info.file.response.data
+            this.props.setImgUrl(info.file.response.data)
+            // this.webImgUrl = info.file.response.data
             // Get this url from response in real world.
             getBase64(info.file.originFileObj, imageUrl => {
                 this.loading = false;
@@ -79,7 +78,6 @@ class UploadImg extends React.Component {
                 >
                     {imageUrl ? <img src={imageUrl} alt="avatar"/> : uploadButton}
                 </Upload>
-                <Input value={this.webImgUrl}/>
 
             </div>
 

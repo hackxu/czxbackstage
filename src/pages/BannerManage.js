@@ -1,5 +1,5 @@
 import React from 'react';
-import {Form, Input, Button, Table, Popconfirm, Select, Modal} from 'antd'
+import {Form, Input, Button, Table, Popconfirm, Select, Modal, Spin} from 'antd'
 import {observable, toJS} from 'mobx';
 import {observer} from 'mobx-react';
 // import store from '../store/index'
@@ -7,93 +7,119 @@ import service from '../http/http'
 
 import UploadImg from '../component/UploadImg'
 import CustomTopFunctionForm from '../component/TopSearch'
+import CommonTable from '../component/CommonTable'
+import CustomLoading from '../component/CustomLoading'
+
 const FormItem = Form.Item;
 const Option = Select.Option;
 
 class BannerManageData {
     @observable tabledata = {
+        selectedRowKeys: new Array(),
+        searchTitle: "",
         data: [],
         pagination: {
             pageSize: 10,
             total: 0,
             showSizeChanger: true,
             showQuickJumper: true,
-            current: 1
+            current: 1,
+            showTotal: (total, range) => `${range[0]}-${range[1]}  共${total}条记录`
+
         },
-        loading: false
+        column: [{
+            title: 'Name',
+            dataIndex: 'name',
+            sorter: true,
+            render: name => `${name.first} ${name.last}`,
+            width: '20%',
+        }, {
+            title: 'Gender',
+            dataIndex: 'gender',
+            filters: [
+                {text: 'Male', value: 'male'},
+                {text: 'Female', value: 'female'},
+            ],
+            width: '20%',
+        }, {
+            title: 'Email',
+            dataIndex: 'email',
+        }],
+        loading: false,
     }
-    @observable selectedRowKeys = []
-    @observable searchTitle = ""
     @observable modalInfo = {
         modalTitle: "",
         modalVisible: false,
-        modalLoading: false
+        modalLoading: false,
+        modalIsEdit: false,
+    }
+    @observable FormData = {
+        title: "草泥马",
+        index: "1",
+        image: "https://ss2.baidu.com/6ONYsjip0QIZ8tyhnq/it/u=1450940714,4183274114&fm=58",
+        type: "",
+        typeIndex: "",
+        index: ""
+    }
+    @observable selectData = {
+        selectType: [
+            {
+                id: "1",
+                name: "草泥马"
+            },
+            {
+                id: "2",
+                name: "草泥马2"
+            },
+            {
+                id: "3",
+                name: "草泥马3"
+            },
+            {
+                id: "4",
+                name: "草泥马4"
+            },
+            {
+                id: "5",
+                name: "草泥马5"
+            },
+            {
+                id: "6",
+                name: "草泥马6"
+            },
+        ],
+        selectTypeIndex: [
+            {
+                id: "1",
+                name: "草泥马"
+            },
+            {
+                id: "2",
+                name: "草泥马2"
+            },
+            {
+                id: "3",
+                name: "草泥马3"
+            },
+            {
+                id: "4",
+                name: "草泥马4"
+            },
+            {
+                id: "5",
+                name: "草泥马5"
+            },
+            {
+                id: "6",
+                name: "草泥马6"
+            },
+
+        ]
     }
 }
 
 const BannerManageStore = new BannerManageData()
 
-const deleteArticle = (Id) => {
-    // console.log({ id: [Id] })
-    // console.log({ id: Id })
-    // BannerManageStore.tabledata.loading = true
-
-    service.post('https://randomuser.me/api', {
-        params: {
-            id: Id
-        }
-    })
-        .then(function (res) {
-            let BannerManagef = new BannerManage()
-            let pagination = {...BannerManageStore.tabledata.pagination}
-
-            BannerManagef.gettabledata({
-                results: pagination.pageSize,
-                page: pagination.current,
-                title: BannerManageStore.searchTitle.length > 0 ? BannerManageStore.searchTitle : undefined,
-            })
-            BannerManageStore.selectedRowKeys.length = 0
-
-        })
-
-};
-
-
-const columns = [
-    {
-        title: 'Name',
-        dataIndex: 'name',
-        sorter: true,
-        render: name => `${name.first} ${name.last}`,
-        width: '20%',
-    }, {
-        title: 'Gender',
-        dataIndex: 'gender',
-        filters: [
-            {text: 'Male', value: 'male'},
-            {text: 'Female', value: 'female'},
-        ],
-        width: '20%',
-    }, {
-        title: 'Email',
-        dataIndex: 'email',
-    },
-    {
-        title: "操作",
-        dataIndex: "",
-        key: "x",
-        render: (text, record, index) => {
-            const Id = record.cell
-            return <div>
-                <a href="javascript:;">编辑</a>
-                <Popconfirm title="确定删除？" onConfirm={() => deleteArticle(Id)}>
-                    <a style={{marginLeft: 12}} href="#">删除</a>
-                </Popconfirm>
-            </div>
-        }
-    }
-
-];
 // const columnss = [
 //     {
 //         title: '标题',
@@ -130,134 +156,95 @@ const columns = [
 //     }
 // ];
 
-
 @observer
 class BannerManage extends React.Component {
-    gettabledata = (params = {}) => {
-        BannerManageStore.tabledata.loading = true
-        BannerManageStore.tabledata.pagination.current = params.page
-        console.log(params.title)
-        if (params.title && params.title.length > 0) {
-            BannerManageStore.searchTitle = params.title
-            delete params.title
-        } else {
-            BannerManageStore.searchTitle = ""
-            delete params.title
+    onRef = (ref) => {
+        this.child = ref
+    }
+    customSetData = (parms = {}, key) => {
+        for (let i in parms) {
+            if (Object.prototype.toString.call(parms[i]) != "[object Object]") {
+                BannerManageStore[key][i] = parms[i]
 
+            }
+            if (Object.prototype.toString.call(parms[i]) == '[object Object]') {
+                for (let j in parms[i]) {
+                    BannerManageStore[key][i][j] = parms[i][j]
+                }
+            }
+        }
+    }
+    setModalData = (parms = {}) => {
+        for (let i in parms) {
+            BannerManageStore.modalInfo[i] = parms[i]
+            if (i === "modalIsEdit") {
+                console.log(toJS(BannerManageStore.modalInfo))
+            }
+        }
+    }
+    setSearchData = (parms = {}) => {
+        console.log(parms)
+        this.child.gettabledata({...parms})
+        // console.log(this.Ctabledata(parms)
+    }
+    editArticle = () => {
+        let that = this;
+        BannerManageStore.modalInfo = {
+            modalTitle: "编辑文章",
+            modalVisible: true,
+            modalLoading: true,
+            modalIsEdit: true
         }
         service.get('https://randomuser.me/api', {
-            params: {
-                results: 10,
-                page: 1,
-                title: BannerManageStore.searchTitle.length > 0 ? BannerManageStore.searchTitle : undefined,
-                ...params
-            }
+            params: {}
         })
             .then(function (response) {
-                // console.log(response);
-                const pagination = {...BannerManageStore.tabledata.pagination}
-                // console.log(pagination)
-                // pagination.total = response.data.total;
-                pagination.total = 200;
-                BannerManageStore.tabledata = {
-                    loading: false,
-                    data: response.results,
-                    pagination: pagination,
-
-                }
-
-
+                BannerManageStore.modalInfo.modalLoading = false
             })
             .catch(function (error) {
                 console.log(error);
             });
-    }
 
-    componentDidMount() {
-        // console.log(this)
-
-        this.gettabledata()
-    }
-
-    onSelectChange = (selectedRowKeys, selectedRows) => {
-        BannerManageStore.selectedRowKeys = selectedRowKeys;
-        console.log(BannerManageStore.selectedRowKeys)
-        // console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
-    }
-
-    handleTableChange = (pagination, filters, sorter) => {
-        console.log(BannerManageStore.searchTitle)
-        const pager = {...pagination};
-        pager.current = pagination.current;
-        BannerManageStore.tabledata.pagination = pager;
-        // console.log(BannerManageStore.tabledata.pagination)
-        // console.log(BannerManageStore.inSearch)
-        this.gettabledata({
-            results: pagination.pageSize,
-            page: pagination.current,
-            sortField: sorter.field,
-            sortOrder: sorter.order,
-            title: BannerManageStore.searchTitle.length > 0 ? BannerManageStore.searchTitle : undefined,
-
-            ...filters,
-        })
-    }
-    handleAddArticle = () => {
-        BannerManageStore.modalInfo = {
-            modalTitle: "新增文章",
-            modalVisible: true
-        }
     }
 
     render() {
-
-        const selectedRowKeys = BannerManageStore.selectedRowKeys.slice();
-        // console.log(selectedRowKeys)
-        const rowSelection = {
-            selectedRowKeys,
-            onChange: this.onSelectChange,
-            // getCheckboxProps: record => (
-
-            //     {
-            //         disabled: record.name === 'Disabled User', // Column configuration not to be checked
-            //         name: record.name,
-            //     }),
-        };
-
-        const hasSelected = selectedRowKeys.length > 0;
-
         return (
             <div className="commontable">
-                <CustomAddBanner></CustomAddBanner>
-                <CustomTopFunctionForm tabledata={BannerManageStore.tabledata} onReciveData={this.gettabledata}/>
-                <div style={{marginBottom: 12}}>
-                    <Button type="primary" onClick={this.handleAddArticle} icon="plus">添加</Button>
-                    {hasSelected ? <Popconfirm title="确定删除？" onConfirm={() => deleteArticle(selectedRowKeys)}> <Button
-                        style={{marginLeft: 20}} type="primary">批量删除</Button> </Popconfirm> : ''}
-                </div>
-                <Table loading={BannerManageStore.tabledata.loading}
-                       rowKey={record => record.cell}
-                       rowSelection={rowSelection}
-                       pagination={BannerManageStore.tabledata.pagination}
-                       dataSource={BannerManageStore.tabledata.data.slice()}
-                       columns={columns}
-                       onChange={this.handleTableChange}
-
-                ></Table>
+                <CustomAddBanner data={BannerManageStore.modalInfo}
+                                 customSetData={this.customSetData}
+                                 formData={BannerManageStore.FormData}
+                                 selectData={BannerManageStore.selectData}
+                ></CustomAddBanner>
+                <CustomTopFunctionForm tabledata={BannerManageStore.tabledata} onReciveData={this.setSearchData}/>
+                <CommonTable tabledata={BannerManageStore.tabledata}
+                             customSetData={this.customSetData} onRef={this.onRef} editArticle={this.editArticle}
+                ></CommonTable>
             </div>
         )
     }
 }
 
-
-
-
 @observer
 class AddBanner extends React.Component {
+    @ observable webImgUrl = ""
     handleReset = (e) => {
-        BannerManageStore.modalInfo.modalVisible = false
-
+        this.props.customSetData({
+            modalVisible: false
+        },"modalInfo")
         this.props.form.resetFields()
+    }
+
+    componentDidMount() {
+
+        service.get('https://randomuser.me/api', {
+            params: {}
+        })
+            .then(function (response) {
+                // console.log(response);
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
     }
 
     handleSubmit = (e) => {
@@ -271,13 +258,22 @@ class AddBanner extends React.Component {
                 console.log(values)
 
                 setTimeout(() => {
-                    BannerManageStore.modalInfo.modalVisible = false;
+                    that.props.setModalData({
+                        modalVisible: false
+                    })
                 }, 2000)
             }
         })
     }
     handleChange = (e) => {
         console.log(`selected${e}`)
+    }
+
+
+    setUploadImgUrl = (e) => {
+        this.props.customSetData({
+            image:e
+        },"FormData")
     }
 
     handleConfirmIndex = (rule, value, callback) => {
@@ -290,17 +286,22 @@ class AddBanner extends React.Component {
 
 
     render() {
+        // console.log(this.props.data)
         const {getFieldDecorator} = this.props.form;
+        const {modalTitle, modalVisible, modalLoading} = this.props.data;
+        const {selectType, selectTypeIndex} = this.props.selectData;
+        const {title, type, typeIndex, index, image} = this.props.formData
         return (
-            <Modal title={BannerManageStore.modalInfo.modalTitle} visible={BannerManageStore.modalInfo.modalVisible}
+            <Modal title={modalTitle} visible={modalVisible}
                    onOk={this.handleOk}
                    onCancel={this.handleReset}
-
                    footer={null}
                    className="AddBanner">
+                {modalLoading ? <CustomLoading></CustomLoading> : ""}
                 <Form onSubmit={this.handleSubmit} onReset={this.handleReset}>
                     <FormItem label="标题">
                         {getFieldDecorator('title', {
+                            initialValue: title,
                             rules: [{required: true, message: '请输入标题'}]
                         })(
                             <Input placeholder="请输入标题"/>
@@ -308,42 +309,40 @@ class AddBanner extends React.Component {
                     </FormItem>
                     <FormItem label="类型">
                         {getFieldDecorator('type', {
-                            initialValue: "jack",
+                            initialValue: type,
                             rules: [{required: true, message: '请选择类型'}]
                         })(
                             <Select style={{width: 175}} onChange={this.handleChange}>
-                                <Option value="jack">Jack</Option>
-                                <Option value="lucy">Lucy</Option>
-                                <Option value="disabled">Disabled</Option>
-                                <Option value="Yiminghe">yiminghe</Option>
+                                {selectType.map(item => <Option key={item.id} value={item.id}>{item.name}</Option>)}
                             </Select>
                         )}
                     </FormItem>
                     <FormItem label="类型编号">
                         {getFieldDecorator('typenumber', {
-                            initialValue: "jack",
+                            initialValue: type,
                             rules: [{required: true, message: '请选择类型编号'}]
                         })(
                             <Select style={{width: 175}} onChange={this.handleChange}>
-                                <Option value="jack">Jack</Option>
-                                <Option value="lucy">Lucy</Option>
-                                <Option value="disabled">Disabled</Option>
-                                <Option value="Yiminghe">yiminghe</Option>
+                                {selectTypeIndex.map(item => <Option key={item.id}
+                                                                     value={item.id}>{item.name}</Option>)}
                             </Select>
                         )}
                     </FormItem>
                     <FormItem label="顺序">
                         {getFieldDecorator('index', {
+                            initialValue: type,
                             rules: [{required: true, message: '请选择顺序'}, {validator: this.handleConfirmIndex}]
                         })(
                             <Input type="number" min="0"/>
                         )}
                     </FormItem>
                     <FormItem label="上传图片">
+                        <UploadImg setImgUrl={this.setUploadImgUrl}></UploadImg>
                         {getFieldDecorator('image', {
-                            rules: [{required: true, message: '请选择图片'}, {validator: this.handleConfirmIndex}]
+                            initialValue: image,
+                            rules: [{required: true, message: '请选择图片'}]
                         })(
-                            <UploadImg></UploadImg>
+                            <Input/>
                         )}
                     </FormItem>
                     <FormItem className="addBannerBtn">
