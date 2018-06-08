@@ -16,9 +16,9 @@ class CommonTable extends React.Component {
             render: (text, record, index) => {
                 const Id = record.cell;
                 return <div>
-                    <a onClick={() => this.props.editArticle(Id)} href="javascript:;">编辑</a>
-                    <Popconfirm title="确定删除？" onConfirm={() => this.deleteArticle(Id)}>
-                        <a style={{marginLeft: 12}} href="#">删除</a>
+                    <a onClick={() => this.props.editArticle(Id)}  href="javascript:;">编辑</a>
+                    <Popconfirm title="确定删除？" onConfirm={() => this.props.deleteArticle(Id)}>
+                        <a style={{marginLeft: 12}}  href="javascript:;">删除</a>
                     </Popconfirm>
                 </div>
             }
@@ -83,32 +83,6 @@ class CommonTable extends React.Component {
     }
 
 
-    deleteArticle = (Id) => {
-        let that = this;
-        // const pagination = {...this.props.tabledata.pagination}
-
-        service.post('https://randomuser.me/api', {
-            id: Id,
-            // page: pagination.current,
-            // results: pagination.pageSize,
-            // title:that.props.
-        })
-            .then(function (res) {
-                let pagination = {...that.props.tabledata.pagination}
-
-                that.gettabledata({
-                    results: pagination.pageSize,
-                    page: pagination.current,
-                    title: that.props.tabledata.searchTitle.length > 0 ? that.props.tabledata.searchTitle : undefined,
-                })
-                that.props.customSetData({
-                    selectedRowKeys: []
-                },"tabledata")
-                // BannerManageStore.selectedRowKeys.length = 0
-
-            })
-
-    };
 
     onSelectChange = (selectedRowKeys, selectedRows) => {
         this.props.customSetData({
@@ -165,7 +139,7 @@ class CommonTable extends React.Component {
                     <Button type="primary" onClick={this.handleAddArticle} icon="plus">添加</Button>
 
                     {hasSelected ?
-                        <Popconfirm title="确定删除？" onConfirm={() => this.deleteArticle(selectedRowKeys)}> <Button
+                        <Popconfirm title="确定删除？" onConfirm={() => this.props.deleteArticle(selectedRowKeys)}> <Button
                             style={{marginLeft: 20}} type="primary">批量删除</Button> </Popconfirm> : ''}
                 </div>
                 <Table loading={loading}

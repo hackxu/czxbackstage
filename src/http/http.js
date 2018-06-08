@@ -12,16 +12,18 @@
 
 import axios from 'axios'
 import store from '../store/index'
+
 const service = axios.create({
     baseURL: 'https://admin.isuzhou.me/',
     timeout: 5000
 })
 
 service.interceptors.request.use(config => {
-    // console.log(config)
+    console.log(config)
     // Do something before request is sent
     if (store.token) {
-        config.headers['Authorization'] = store.token
+
+        config.headers['authorization'] = 'Bearer ' + store.token
         // config.headers['ContentType'] = "application/json"
         // service.defaults.headers.common['Authorization'] = store.token
         // console.log(config)

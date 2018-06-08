@@ -12,8 +12,7 @@ class AppData {
     // }
 
     @action login() {
-
-        return this.isLogin = true;
+        this.isLogin = true;
     }
 
     @computed get logintoken() {
@@ -48,6 +47,5 @@ autorun(() => {
     store.logintoken
 })
 
-console.log(store)
 // console.log(store)
 export default store

@@ -2,7 +2,7 @@ import React from 'react'
 import {observable} from "mobx";
 import {observer} from "mobx-react";
 import store from '../store/index'
-import {Upload, Icon, message, Input} from 'antd'
+import {Upload, Icon, message} from 'antd'
 
 function getBase64(img, callback) {
     const reader = new FileReader();
@@ -26,6 +26,10 @@ function beforeUpload(file) {
 class UploadImg extends React.Component {
     @observable loading = false
     @observable imageUrl = ""
+    componentDidUpdate() {
+        this.imageUrl = this.props.image
+    }
+
 
     handleChange = (info) => {
 
@@ -72,7 +76,7 @@ class UploadImg extends React.Component {
                     showUploadList={false}
                     action="https://admin.isuzhou.me/storage/uploadimage"
                     accept="image/jpeg,image/jpg,image/png"
-                    headers={{authorization: store.token}}
+                    headers={{authorization: "Bearer " + store.token}}
                     beforeUpload={beforeUpload}
                     onChange={this.handleChange}
                 >

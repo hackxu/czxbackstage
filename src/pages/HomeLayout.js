@@ -1,10 +1,11 @@
 import React from 'react';
-import { Layout, Menu, Icon } from 'antd';
-import { observer } from 'mobx-react';
-import { observable } from 'mobx';
-import { Link, withRouter } from 'react-router-dom';
+import {Layout, Menu, Icon} from 'antd';
+import {observer} from 'mobx-react';
+import {observable} from 'mobx';
+import {Link, withRouter} from 'react-router-dom';
 import store from '../store/index'
-const { Header, Sider, Content } = Layout;
+
+const {Header, Sider, Content} = Layout;
 
 const SubMenu = Menu.SubMenu;
 const NavList = [
@@ -210,7 +211,9 @@ NavList.map((item, index) =>
         return true
     })
 )
-@observer class HomeIndexLayout extends React.Component {
+
+@observer
+class HomeIndexLayout extends React.Component {
 
     @observable collapsed = false;
 
@@ -221,8 +224,9 @@ NavList.map((item, index) =>
         store.loginout()
         this.props.history.push('/login')
     }
+
     render() {
-        const { children } = this.props;
+        const {children} = this.props;
         return (
             <Layout className="">
                 <Sider
@@ -230,32 +234,33 @@ NavList.map((item, index) =>
                     trigger={null}
                     collapsible
                     collapsed={this.collapsed}
-                    style={{ overflow: 'auto', height: '100vh', zIndex: '2', position: 'fixed', left: 0 }}
+                    style={{overflow: 'auto', height: '100vh', zIndex: '2', position: 'fixed', left: 0}}
                 >
-                    <div className="logo" >穿藏线后台</div>
-                    <CustomSiderMenuWithRouter />
+                    <div className="logo">穿藏线后台</div>
+                    <CustomSiderMenuWithRouter/>
 
                 </Sider>
                 <Layout>
-                    <Header theme="dark" style={{ padding: 0, position: 'fixed', zIndex: 1, width: '100%' }}>
+                    <Header theme="dark" style={{padding: 0, position: 'fixed', zIndex: 1, width: '100%'}}>
                         <div className="accountInfo">
                             <div className="accountname">admin</div>
                             <span>|</span>
                             <div className="close" onClick={this.loginout}>退出</div>
                         </div>
                     </Header>
-                    <Content style={{ margin: '88px 16px 24px 216px ', padding: 24, background: '#fff', minHeight: 280 }}>
+                    <Content style={{margin: '88px 16px 24px 216px ', padding: 24, background: '#fff', minHeight: 280}}>
                         <h3 className="pagetitle">{NavChildArr[this.props.history.location.pathname]}</h3>
-                    {children}
+                        {children}
                     </Content>
+                </Layout>
             </Layout>
-            </Layout >
         );
     }
 }
 
 
-@observer class CustomSiderMenu extends React.Component {
+@observer
+class CustomSiderMenu extends React.Component {
     rootSubmenKeys = NavList.map((item, index) => index.toString())
     @observable openKeys = ["0"];
     // @observable selectedKeys = [this.props.history.pathname];
@@ -269,6 +274,7 @@ NavList.map((item, index) =>
         // console.log(NavChildArr)
         // console.log(this.props.history)
     }
+
     onOpenChange = (openKeys) => {
         const latestOpenKey = openKeys.find(key => this.openKeys.indexOf(key) === -1);
         if (this.rootSubmenKeys.indexOf(latestOpenKey) === -1) {
@@ -282,6 +288,7 @@ NavList.map((item, index) =>
             this.openKeys = latestOpenKey ? [latestOpenKey] : []
         }
     }
+
     render() {
         // console.log(NavList)
 
@@ -293,18 +300,18 @@ NavList.map((item, index) =>
                 openKeys={this.openKeys.slice()}
                 onOpenChange={this.onOpenChange}
                 selectedKeys={[this.props.history.location.pathname]}
-            // defaultSelectedKeys={NavCountChildKey + 1}
+                // defaultSelectedKeys={NavCountChildKey + 1}
             >
                 {
                     NavList.map((item, index) =>
-                        <SubMenu key={index} title={<span><Icon type={item.icon} /><span>{item.pathname}</span></span>}>
+                        <SubMenu key={index} title={<span><Icon type={item.icon}/><span>{item.pathname}</span></span>}>
 
                             {item.children.map((citem, cindex) =>
-                                <Menu.Item key={citem.key}><Link to={citem.routepath}>{citem.pathname}</Link></Menu.Item>
+                                <Menu.Item key={citem.key}><Link
+                                    to={citem.routepath}>{citem.pathname}</Link></Menu.Item>
                             )}
 
                         </SubMenu>
-
                     )}
 
             </Menu>
@@ -312,6 +319,7 @@ NavList.map((item, index) =>
     }
 
 }
+
 const CustomSiderMenuWithRouter = withRouter(CustomSiderMenu)
 
 

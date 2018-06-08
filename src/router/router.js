@@ -5,9 +5,9 @@ import store from "../store/index"
 
 import LoginPage from "../pages/login";
 import todoListPage from "../pages/todoList";
-import HomePage from "../pages/homeLayout";
+import HomePage from "../pages/HomeLayout";
 import BannerManagePage from "../pages/BannerManage"
-import HomeManagePage from "../pages/homeManage"
+import HomeManagePage from "../pages/HomeManage"
 
 // import { Layout } from 'antd';
 // import { observer } from 'mobx-react'
