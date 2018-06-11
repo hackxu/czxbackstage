@@ -19,7 +19,7 @@ const service = axios.create({
 })
 
 service.interceptors.request.use(config => {
-    console.log(config)
+    // console.log(config)
     // Do something before request is sent
     if (store.token) {
 

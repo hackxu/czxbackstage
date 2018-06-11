@@ -251,4 +251,35 @@ function md5(string, key, raw) {
     return rawHMACMD5(key, string)
 }
 
-export {md5}
+const customResetFormData = (obj, key) => {
+    // console.log(parms)
+    // console.log(key)
+    // console.log(gobj)
+
+    console.log(key)
+    for (let i in obj[key]) {
+        if (Object.prototype.toString.call(key[i]) != "[object Object]") {
+            obj[key][i] = ""
+            // console.log("cao", HomeManageStore[key][i])
+        }
+
+    }
+}
+const customSetData = (parms = {},obj, key) => {
+    // console.log(parms)
+    // console.log(key)
+    for (let i in parms) {
+        if (Object.prototype.toString.call(parms[i]) != "[object Object]") {
+            obj[key][i] = parms[i]
+            // console.log("cao", HomeManageStore[key][i])
+        }
+        if (Object.prototype.toString.call(parms[i]) == '[object Object]') {
+            for (let j in parms[i]) {
+                obj[key][i][j] = parms[i][j]
+            }
+        }
+    }
+}
+
+
+export {md5, customResetFormData,customSetData}

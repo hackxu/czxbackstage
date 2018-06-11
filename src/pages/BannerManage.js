@@ -157,9 +157,17 @@ const BannerManageStore = new BannerManageData()
 
 @observer
 class BannerManage extends React.Component {
-    onRef = (ref) => {
-        this.child = ref
+    // onRef = (ref) => {
+    //     this.child = ref
+    // }
+    customResetFormData = (key) => {
+        for (let i in BannerManageStore[key]) {
+            if (Object.prototype.toString.call(key[i]) != "[object Object]") {
+                BannerManageStore[key][i] = ""
+            }
+        }
     }
+
     customSetData = (parms = {}, key) => {
         for (let i in parms) {
             if (Object.prototype.toString.call(parms[i]) !== "[object Object]") {
@@ -176,9 +184,56 @@ class BannerManage extends React.Component {
 
     setSearchData = (parms = {}) => {
         console.log(parms)
-        this.child.gettabledata({...parms})
+        this.gettabledata({...parms})
         // console.log(this.Ctabledata(parms)
     }
+    gettabledata = (params = {}) => {
+        let that = this;
+        // console.log(this)
+        console.log(params)
+        this.customSetData({
+            loading: true,
+            pagination: {current: params.page ? params.page : 1}
+        }, "tabledata")
+
+        if (params.title && params.title.length > 0) {
+            this.customSetData({
+                searchTitle: params.title
+            }, "tabledata")
+            delete params.title
+        } else {
+            this.customSetData({
+                searchTitle: ""
+            }, "tabledata")
+            delete params.title
+        }
+        // console.log("caopropstitle", that.props.tabledata.searchTitle)
+
+        service.get('https://randomuser.me/api', {
+            params: {
+                results: 10,
+                page: 1,
+                title: BannerManageStore.tabledata.searchTitle.length > 0 ? BannerManageStore.tabledata.searchTitle : undefined,
+                ...params
+            }
+        })
+            .then(function (response) {
+                // console.log(response);
+                const pagination = {...BannerManageStore.tabledata.pagination}
+
+                pagination.total = 200;
+                that.customSetData({
+                    loading: false,
+                    data: response.results,
+                    pagination: pagination,
+                }, "tabledata")
+
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+    }
+
     editArticle = (id) => {
         console.log(id)
         // let that = this;
@@ -240,13 +295,14 @@ class BannerManage extends React.Component {
             <div className="commontable">
                 <CustomAddBanner data={BannerManageStore.modalInfo}
                                  customSetData={this.customSetData}
+                                 customResetFormData={this.customResetFormData}
                                  formData={BannerManageStore.FormData}
                                  selectData={BannerManageStore.selectData}
                 ></CustomAddBanner>
                 <CustomTopFunctionForm tabledata={BannerManageStore.tabledata} onReciveData={this.setSearchData}/>
                 <CommonTable tabledata={BannerManageStore.tabledata}
-                             customSetData={this.customSetData} onRef={this.onRef} editArticle={this.editArticle}
-                             deleteArticle={this.deleteArticle}
+                             customSetData={this.customSetData} editArticle={this.editArticle}
+                             deleteArticle={this.deleteArticle} gettabledata={this.gettabledata}
                 ></CommonTable>
             </div>
         )
@@ -255,19 +311,12 @@ class BannerManage extends React.Component {
 
 @observer
 class AddBanner extends React.Component {
-    @ observable webImgUrl = ""
     handleReset = (e) => {
         this.props.customSetData({
             modalVisible: false
         }, "modalInfo")
         this.props.form.resetFields()
-        this.props.customSetData({
-            title: "",
-            image: "",
-            type: "",
-            typeIndex: "",
-            index: ""
-        }, "FormData")
+        this.props.customResetFormData("FormData")
     }
 
     componentDidMount() {
@@ -288,15 +337,18 @@ class AddBanner extends React.Component {
 
         e.preventDefault();
         this.props.form.validateFieldsAndScroll((err, values) => {
-            console.log(values)
+            // console.log(values)
 
             if (!err) {
                 console.log(values)
 
                 setTimeout(() => {
-                    that.props.setModalData({
+                    that.props.customResetFormData("FormData")
+
+                    that.props.customSetData({
                         modalVisible: false
-                    })
+                    }, "modalInfo")
+                    console.log(that.props.formData)
                 }, 2000)
             }
         })
@@ -310,6 +362,9 @@ class AddBanner extends React.Component {
         this.props.customSetData({
             image: e
         }, "FormData")
+        this.props.form.setFieldsValue({
+            image: e
+        })
     }
 
     handleConfirmIndex = (rule, value, callback) => {
@@ -329,9 +384,10 @@ class AddBanner extends React.Component {
         const {title, type, typeIndex, index, image} = this.props.formData
         return (
             <Modal title={modalTitle} visible={modalVisible}
-                   onOk={this.handleOk}
+                   onOk={this.handleSubmit}
                    onCancel={this.handleReset}
-                   footer={null}
+                // footer={null}
+                   destroyOnClose={true}
                    className="AddBanner">
                 {modalLoading ? <CustomLoading></CustomLoading> : ""}
                 <Form onSubmit={this.handleSubmit} onReset={this.handleReset}>
@@ -381,10 +437,10 @@ class AddBanner extends React.Component {
                             <Input/>
                         )}
                     </FormItem>
-                    <FormItem className="addBannerBtn">
-                        <Button type="primary" htmlType="submit">确定</Button>
-                        <Button type="default" htmlType="reset">取消</Button>
-                    </FormItem>
+                    {/*<FormItem className="addBannerBtn">*/}
+                    {/*<Button type="primary" htmlType="submit">确定</Button>*/}
+                    {/*<Button type="default" htmlType="reset">取消</Button>*/}
+                    {/*</FormItem>*/}
                 </Form>
             </Modal>
         )

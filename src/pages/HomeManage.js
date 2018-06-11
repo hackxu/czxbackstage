@@ -1,106 +1,158 @@
 import React from 'react';
-import {Table, Badge, Menu, Dropdown, Icon} from "antd";
-import {observable} from "mobx";
+import {Table, Button, Modal, Form, Input, Select, Popconfirm} from "antd";
+import {observable, toJS} from "mobx";
 import {observer} from "mobx-react";
 import service from "../http/http";
 
 import CustomTopFunctionForm from "../component/TopSearch"
+import store from "../store";
+import CustomLoading from '../component/CustomLoading'
+
+const FormItem = Form.Item;
+const Option = Select.Option
 
 class HomeManageData {
-    @observable tabledata = []
+    @observable tabledata = {
+        HomeBigList: [],
+        HomeSmallList: [
+            [
+                {
+                    "key": 0,
+                    "name": "Screem0",
+                    "type": "文章资讯0",
+                    "index": 0
+                },
+                {
+                    "key": 1,
+                    "name": "Screem1",
+                    "type": "文章资讯1",
+                    "index": 1
+                },
+                {
+                    "key": 2,
+                    "name": "Screem2",
+                    "type": "文章资讯2",
+                    "index": 2
+                }
+            ],
+            [
+                {
+                    "key": 0,
+                    "name": "Screem0",
+                    "type": "文章资讯3",
+                    "index": 0
+                },
+                {
+                    "key": 1,
+                    "name": "Screem1",
+                    "type": "文章资讯4",
+                    "index": 1
+                },
+                {
+                    "key": 2,
+                    "name": "Screem2",
+                    "type": "文章资讯5",
+                    "index": 2
+                }
+            ],
+            [
+                {
+                    "key": 0,
+                    "name": "Screem0",
+                    "type": "文章资讯6",
+                    "index": 0
+                },
+                {
+                    "key": 1,
+                    "name": "Screem1",
+                    "type": "文章资讯7",
+                    "index": 1
+                },
+                {
+                    "key": 2,
+                    "name": "Screem2",
+                    "type": "文章资讯8",
+                    "index": 2
+                }
+            ],
+        ],
+        searchTitle: "",
+        loading: false
+        // pagination: {}
+    }
+
+    @observable modalInfo = {
+        modalTitle: "",
+        modalVisible: false,
+        modalLoading: false,
+        modalIsEdit: false,
+    }
+    @observable FormData = {
+        title: "",
+        index: "",
+        type: "",
+    }
+    @observable selectData = {
+        selectType: [
+            {
+                id: "1",
+                name: "草泥马"
+            },
+            {
+                id: "2",
+                name: "草泥马2"
+            },
+            {
+                id: "3",
+                name: "草泥马3"
+            },
+            {
+                id: "4",
+                name: "草泥马4"
+            },
+            {
+                id: "5",
+                name: "草泥马5"
+            },
+            {
+                id: "6",
+                name: "草泥马6"
+            },
+        ]
+    }
+
+    // @action initData = () => {
+    //
+    //     service.get('https://randomuser.me/api', {
+    //         params: {}
+    //     })
+    //         .then(function (response) {
+    //             console.log(response)
+    //         })
+    //         .catch(function (error) {
+    //             console.log(error);
+    //         });
+    // }
+
 }
 
 const HomeManageStore = new HomeManageData()
 
-const menu = (
-    <Menu>
-        <Menu.Item>
-            Action 1
-        </Menu.Item>
-        <Menu.Item>
-            Action 2
-        </Menu.Item>
-    </Menu>
-);
-
-function NestedTable() {
-    const expandedRowRender = () => {
-        const columns = [
-            {title: '标题', dataIndex: 'title', key: 'title'},
-            {title: '类型', dataIndex: 'type', key: 'type'},
-            {title: '顺序', dataIndex:'typeindex',key: 'typeindex',},
-            {
-                title: '操作',
-                dataIndex: 'operation',
-                key: 'operation',
-                render: () => (
-                    <span className="table-operation">
-            <a href="javascript:;">编辑</a>
-            <a href="javascript:;">删除</a>
-          </span>
-                ),
-            },
-        ];
-
-        const data = [];
-        for (let i = 0; i < 3; ++i) {
-            data.push({
-                key: i,
-                title: '看看',
-                type: 'This is production name',
-                typeindex: 'Upgraded: 56',
-            });
-        }
-        return (
-            <Table
-                columns={columns}
-                dataSource={data}
-                pagination={false}
-            />
-        );
-    };
-
-    const columns = [
-        {title: 'Name', dataIndex: 'name', key: 'name'},
-        {title: 'Platform', dataIndex: 'platform', key: 'platform'},
-        {title: 'Version', dataIndex: 'version', key: 'version'},
-        {title: 'Upgraded', dataIndex: 'upgradeNum', key: 'upgradeNum'},
-        {title: 'Creator', dataIndex: 'creator', key: 'creator'},
-        {title: 'Date', dataIndex: 'createdAt', key: 'createdAt'},
-        {title: 'Action', key: 'operation', render: () => <a href="javascript:;">Publish</a>},
-    ];
-
-    const data = [];
-    for (let i = 0; i < 3; ++i) {
-        data.push({
-            key: i,
-            name: 'Screem',
-            platform: 'iOS',
-            version: '10.3.4.5654',
-            upgradeNum: 500,
-            creator: 'Jack',
-            createdAt: '2014-12-24 23:12:00',
-        });
-    }
-
-    return (
-        <Table
-            className="components-table-demo-nested"
-            columns={columns}
-            expandedRowRender={expandedRowRender}
-            dataSource={data}
-        />
-    );
-}
 
 @observer
 class HomeManage extends React.Component {
 
+    componentDidMount() {
+        this.gettabledata()
+    }
+
     customSetData = (parms = {}, key) => {
+        // console.log(parms)
+        // console.log(key)
         for (let i in parms) {
             if (Object.prototype.toString.call(parms[i]) != "[object Object]") {
                 HomeManageStore[key][i] = parms[i]
-
+                // console.log("cao", HomeManageStore[key][i])
             }
             if (Object.prototype.toString.call(parms[i]) == '[object Object]') {
                 for (let j in parms[i]) {
@@ -109,12 +161,62 @@ class HomeManage extends React.Component {
             }
         }
     }
+    customResetFormData = (key) => {
+        for (let i in HomeManageStore[key]) {
+            if (Object.prototype.toString.call(key[i]) != "[object Object]") {
+                HomeManageStore[key][i] = ""
+            }
 
-    setSearchData = (parms = {}) => {
-        console.log(parms)
-        console.log("1")
-        // this.child.gettabledata({...parms})
-        // console.log(this.Ctabledata(parms)
+        }
+    }
+    gettabledata = (params = {}) => {
+        let that = this;
+        // console.log(this)
+        // console.log(params)
+        this.customSetData({
+            loading: true,
+            // pagination: {current: params.page ? params.page : 1}
+        }, "tabledata")
+
+        if (params.title && params.title.length > 0) {
+            this.customSetData({
+                searchTitle: params.title
+            }, "tabledata")
+            delete params.title
+        } else {
+            this.customSetData({
+                searchTitle: ""
+            }, "tabledata")
+            delete params.title
+        }
+        delete params.page
+
+        service.get('https://randomuser.me/api', {
+            params: {
+                // results: 10,
+                // page: 1,
+                title: HomeManageStore.tabledata.searchTitle.length > 0 ? HomeManageStore.tabledata.searchTitle : undefined,
+                ...params
+            }
+        })
+            .then(function (response) {
+                // console.log(response);
+                // const pagination = {...HomeManageStore.tabledata.pagination}
+                //
+                // pagination.total = 200;
+                // console.log(response)
+                that.customSetData({
+                    loading: false,
+                    HomeBigList: response.results,
+                    // pagination: pagination,
+                }, "tabledata")
+
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+
+        // console.log(HomeManageStore)
     }
     editArticle = (id) => {
         console.log(id)
@@ -132,9 +234,7 @@ class HomeManage extends React.Component {
                 HomeManageStore.modalInfo.modalLoading = false
                 HomeManageStore.FormData = {
                     title: "草泥马2",
-                    image: "https://ss2.baidu.com/6ONYsjip0QIZ8tyhnq/it/u=1450940714,4183274114&fm=58",
                     type: "1",
-                    typeIndex: "2",
                     index: "1"
 
                 }
@@ -155,11 +255,11 @@ class HomeManage extends React.Component {
             // title:that.props.
         })
             .then(function (res) {
-                let pagination = {...HomeManageStore.tabledata.pagination}
+                // let pagination = {...HomeManageStore.tabledata.pagination}
 
                 that.gettabledata({
-                    results: pagination.pageSize,
-                    page: pagination.current,
+                    // results: pagination.pageSize,
+                    // page: pagination.current,
                     title: HomeManageStore.tabledata.searchTitle.length > 0 ? HomeManageStore.searchTitle : undefined,
                 })
                 that.customSetData({
@@ -170,15 +270,213 @@ class HomeManage extends React.Component {
             })
 
     };
+    handleAddArticle = () => {
+        this.customSetData({
+            modalTitle: "新增首页",
+            modalVisible: true,
+            modalLoading: false,
+        }, "modalInfo")
+    }
 
     render() {
         return (
             <div>
-                <CustomTopFunctionForm tabledata={HomeManageStore.tabledata} onReciveData={this.setSearchData}/>
-                <NestedTable></NestedTable>
+                <CustomTopFunctionForm tabledata={HomeManageStore.tabledata}
+                                       onReciveData={this.gettabledata}/>
+                <div style={{marginBottom: 12}}>
+                    <Button type="primary" onClick={this.handleAddArticle} icon="plus">添加</Button>
+                </div>
+                <CustomAddData data={HomeManageStore.modalInfo}
+                               customSetData={this.customSetData}
+                               customResetFormData={this.customResetFormData}
+                               formData={HomeManageStore.FormData}
+                               selectData={HomeManageStore.selectData}></CustomAddData>
+                <NestedTable tabledata={HomeManageStore.tabledata} editArticle={this.editArticle}
+                             deleteArticle={this.deleteArticle}></NestedTable>
             </div>
         )
     }
 }
+
+
+@observer
+class NestedTable extends React.Component {
+    @observable  columns = [
+        {title: '标题', dataIndex: 'name', key: 'name'},
+        {title: '类型', dataIndex: 'type', key: 'type'},
+        {title: '顺序', dataIndex: 'index', key: 'index'},
+        {
+            title: '操作', key: 'operation',
+            render: (text, record, index) => {
+                const Id = record.cell;
+                return <span className="table-operation">
+                        <a href="javascript:;">新增</a>
+                        <a href="javascript:;" onClick={() => this.props.editArticle(Id)}>编辑</a>
+                    <Popconfirm title="确定删除？" onConfirm={() => this.props.deleteArticle(Id)}>
+                        <a href="javascript:;">删除</a>
+                    </Popconfirm>
+                    </span>
+            }
+        },
+    ];
+
+    render() {
+        const {loading, HomeBigList} = toJS(this.props.tabledata)
+
+        return (
+            <div>
+                <Table
+                    rowKey={record => record.cell}
+                    loading={loading}
+                    className="components-table-demo-nested"
+                    columns={this.columns.slice()}
+                    expandedRowRender={expandedRowRender}
+                    dataSource={HomeBigList}
+                    pagination={false}
+                />
+            </div>
+
+        );
+    }
+
+}
+
+
+const expandedRowRender = (e) => {
+    const columns = [
+        {title: '标题', dataIndex: 'name', key: 'name'},
+        {title: '类型', dataIndex: 'type', key: 'type'},
+        {title: '顺序', dataIndex: 'index', key: 'index',},
+        {
+            title: '操作',
+            dataIndex: 'operation',
+            key: 'operation',
+            render: () => (
+                <span className="table-operation">
+                        <a href="javascript:;">编辑</a>
+                        <a href="javascript:;">删除</a>
+                    </span>
+            ),
+        },
+    ];
+    console.log(e)
+    return (
+        <Table
+            columns={columns}
+            dataSource={HomeManageStore.tabledata.HomeSmallList[0].slice()}
+            pagination={false}
+            // rowKey={record => record.cell}
+        />
+    );
+};
+
+
+@observer
+class AddData extends React.Component {
+    handleReset = (e) => {
+        this.props.customSetData({
+            modalVisible: false
+        }, "modalInfo")
+        this.props.form.resetFields()
+
+        this.props.customResetFormData("FormData")
+    }
+
+    componentDidMount() {
+
+        service.get('https://randomuser.me/api', {
+            params: {}
+        })
+            .then(function (response) {
+                // console.log(response);
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+    }
+
+    handleSubmit = (e) => {
+        var that = this;
+
+        e.preventDefault();
+        this.props.form.validateFieldsAndScroll((err, values) => {
+
+            if (!err) {
+                console.log(values)
+
+                setTimeout(() => {
+                    that.props.customResetFormData("FormData")
+                    that.props.customSetData({
+                        modalVisible: false
+                    }, "modalInfo")
+                    // console.log(this.props.formData)
+                }, 2000)
+            }
+        })
+    }
+    handleChange = (e) => {
+        console.log(`selected${e}`)
+    }
+
+
+    handleConfirmIndex = (rule, value, callback) => {
+        console.log(value)
+        if (value < 0) {
+            callback('请检查顺序')
+        }
+        callback()
+    }
+
+
+    render() {
+        // console.log(this.props.data)
+        const {getFieldDecorator} = this.props.form;
+        const {modalTitle, modalVisible, modalLoading} = this.props.data;
+        const {selectType} = this.props.selectData;
+        const {title, type, index} = this.props.formData
+        return (
+            <Modal title={modalTitle} visible={modalVisible}
+                   onOk={this.handleSubmit}
+                   onCancel={this.handleReset}
+                   destroyOnClose={true}
+                   className="AddBanner">
+                {modalLoading ? <CustomLoading></CustomLoading> : ""}
+                <Form onSubmit={this.handleSubmit} onReset={this.handleReset}>
+                    <FormItem label="标题">
+                        {getFieldDecorator('title', {
+                            initialValue: title,
+                            rules: [{required: true, message: '请输入标题'}]
+                        })(
+                            <Input placeholder="请输入标题"/>
+                        )}
+                    </FormItem>
+                    <FormItem label="类型">
+                        {getFieldDecorator('type', {
+                            initialValue: type,
+                            rules: [{required: true, message: '请选择类型'}]
+                        })(
+                            <Select style={{width: 175}} onChange={this.handleChange}>
+                                {selectType.map(item => <Option key={item.id} value={item.id}>{item.name}</Option>)}
+                            </Select>
+                        )}
+                    </FormItem>
+
+                    <FormItem label="顺序">
+                        {getFieldDecorator('index', {
+                            initialValue: index,
+                            rules: [{required: true, message: '请选择顺序'}, {validator: this.handleConfirmIndex}]
+                        })(
+                            <Input type="number" min="0"/>
+                        )}
+                    </FormItem>
+
+
+                </Form>
+            </Modal>
+        )
+    }
+}
+
+const CustomAddData = Form.create()(AddData)
 
 export default HomeManage

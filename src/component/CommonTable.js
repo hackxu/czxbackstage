@@ -16,9 +16,9 @@ class CommonTable extends React.Component {
             render: (text, record, index) => {
                 const Id = record.cell;
                 return <div>
-                    <a onClick={() => this.props.editArticle(Id)}  href="javascript:;">编辑</a>
+                    <a onClick={() => this.props.editArticle(Id)} href="javascript:;">编辑</a>
                     <Popconfirm title="确定删除？" onConfirm={() => this.props.deleteArticle(Id)}>
-                        <a style={{marginLeft: 12}}  href="javascript:;">删除</a>
+                        <a style={{marginLeft: 12}} href="javascript:;">删除</a>
                     </Popconfirm>
                 </div>
             }
@@ -27,67 +27,18 @@ class CommonTable extends React.Component {
 
     ];
 
-    gettabledata = (params = {}) => {
-        let that = this;
-        // console.log(this)
-        console.log(params)
-        this.props.customSetData({
-            loading: true,
-            pagination: {current: params.page ? params.page : 1}
-        },"tabledata")
-
-        if (params.title && params.title.length > 0) {
-            this.props.customSetData({
-                searchTitle: params.title
-            },"tabledata")
-            delete params.title
-        } else {
-            this.props.customSetData({
-                searchTitle: ""
-            },"tabledata")
-            delete params.title
-        }
-        // console.log("caopropstitle", that.props.tabledata.searchTitle)
-
-        service.get('https://randomuser.me/api', {
-            params: {
-                results: 10,
-                page: 1,
-                title: that.props.tabledata.searchTitle > 0 ? that.props.tabledata.searchTitle : undefined,
-                ...params
-            }
-        })
-            .then(function (response) {
-                // console.log(response);
-                const pagination = {...that.props.tabledata.pagination}
-
-                pagination.total = 200;
-                that.props.customSetData({
-                    loading: false,
-                    data: response.results,
-                    pagination: pagination,
-                },"tabledata")
-
-                console.log(that.props.tabledata)
-
-            })
-            .catch(function (error) {
-                console.log(error);
-            });
-    }
 
     componentDidMount() {
         console.log(this.props)
-        this.props.onRef(this)
-        this.gettabledata()
+        // this.props.onRef(this)
+        this.props.gettabledata()
     }
-
 
 
     onSelectChange = (selectedRowKeys, selectedRows) => {
         this.props.customSetData({
             selectedRowKeys: selectedRowKeys
-        },"tabledata")
+        }, "tabledata")
     }
     //
     handleTableChange = (pagination, filters, sorter) => {
@@ -96,9 +47,9 @@ class CommonTable extends React.Component {
         pager.current = pagination.current;
         this.props.customSetData({
             pagination: pager
-        },"tabledata")
+        }, "tabledata")
 
-        this.gettabledata({
+        this.props.gettabledata({
             results: pagination.pageSize,
             page: pagination.current,
             sortField: sorter.field,
@@ -113,7 +64,7 @@ class CommonTable extends React.Component {
             modalTitle: "新增文章",
             modalVisible: true,
             modalLoading: false,
-        },"modalInfo")
+        }, "modalInfo")
     }
 
     render() {
@@ -142,6 +93,7 @@ class CommonTable extends React.Component {
                         <Popconfirm title="确定删除？" onConfirm={() => this.props.deleteArticle(selectedRowKeys)}> <Button
                             style={{marginLeft: 20}} type="primary">批量删除</Button> </Popconfirm> : ''}
                 </div>
+
                 <Table loading={loading}
                        rowKey={record => record.cell}
                        rowSelection={rowSelection}
