@@ -8,203 +8,8 @@ import store from '../store/index'
 const {Header, Sider, Content} = Layout;
 
 const SubMenu = Menu.SubMenu;
-const NavList = [
-    {
-        routepath: "",
-        icon: "home",
-        pathname: "首页管理",
-        key: "",
-        children: [
-            {
-                routepath: "/h/bannerManage",
-                icon: "",
-                pathname: "Banner管理",
-                key: "/h/bannerManage"
-            },
-            {
-                routepath: "/h/homeManage",
-                icon: "",
-                pathname: "首页管理",
-                key: "/h/homeManage"
-            },
-        ]
-    },
-    {
-        routepath: "",
-        icon: "info-circle-o",
-        pathname: "基础信息",
-        key: "",
-        children: [
-            {
-                routepath: "",
-                icon: "",
-                pathname: "资讯管理",
-                key: ""
-            },
-            {
-                routepath: "",
-                icon: "",
-                pathname: "百科管理",
-                key: ""
-            },
-            {
-                routepath: "",
-                icon: "",
-                pathname: "活动管理",
-                key: ""
-            },
-            {
-                routepath: "",
-                icon: "",
-                pathname: "藏历管理",
-                key: ""
-            },
-            {
-                routepath: "",
-                icon: "",
-                pathname: "热搜管理",
-                key: ""
-            },
-            {
-                routepath: "",
-                icon: "",
-                pathname: "车队管理",
-                key: ""
-            },
-        ]
-    },
-    {
-        routepath: "",
-        icon: "pushpin",
-        pathname: "景点信息管理",
-        key: "",
-        children: [
-            {
-                routepath: "",
-                icon: "",
-                pathname: "西藏区域",
-                key: ""
-            },
-            {
-                routepath: "",
-                icon: "",
-                pathname: "景点",
-                key: ""
-            },
-            {
-                routepath: "",
-                icon: "",
-                pathname: "景点距离",
-                key: ""
-            },
-            {
-                routepath: "",
-                icon: "",
-                pathname: "区域耗时",
-                key: ""
-            }
-        ]
-    },
-    {
-        routepath: "",
-        icon: "like",
-        pathname: "官方推荐",
-        key: "",
-        children: [
-            {
-                routepath: "",
-                icon: "",
-                pathname: "推荐攻略",
-                key: ""
-            },
-            {
-                routepath: "",
-                icon: "",
-                pathname: "推荐游记",
-                key: ""
-            },
-        ]
-    },
-    {
-        routepath: "",
-        icon: "bars",
-        pathname: "系统信息管理",
-        key: "",
-        children: [
-            {
-                routepath: "",
-                icon: "",
-                pathname: "系统配置",
-                key: ""
-            },
-            {
-                routepath: "",
-                icon: "",
-                pathname: "欢迎界面",
-                key: ""
-            },
-            {
-                routepath: "",
-                icon: "",
-                pathname: "APP版本",
-                key: ""
-            },
-            {
-                routepath: "",
-                icon: "",
-                pathname: "用户反馈",
-                key: ""
-            },
-        ]
-    }, {
-        routepath: "",
-        icon: "user",
-        pathname: "客户信息浏览",
-        key: "",
-        children: [
-            {
-                routepath: "",
-                icon: "",
-                pathname: "客户行程",
-                key: ""
-            },
-            {
-                routepath: "",
-                icon: "",
-                pathname: "分配车队",
-                key: ""
-            },
-            {
-                routepath: "",
-                icon: "",
-                pathname: "客户管理",
-                key: ""
-            }
-        ]
-    },
-    {
-        routepath: "",
-        icon: "bar-chart",
-        pathname: "客户其他信息",
-        key: "",
-        children: [
-            {
-                routepath: "",
-                icon: "",
-                pathname: "评论表",
-                key: ""
-            },
-            {
-                routepath: "",
-                icon: "",
-                pathname: "客户收藏表",
-                key: ""
-            }
-        ]
-    },
-]
 let NavChildArr = {}
-NavList.map((item, index) =>
+store.NavList.map((item, index) =>
     item.children.map((citem, cindex) => {
 
         NavChildArr[citem.routepath] = citem.pathname
@@ -261,7 +66,7 @@ class HomeIndexLayout extends React.Component {
 
 @observer
 class CustomSiderMenu extends React.Component {
-    rootSubmenKeys = NavList.map((item, index) => index.toString())
+    rootSubmenKeys = store.NavList.map((item, index) => index.toString())
     @observable openKeys = ["0"];
     // @observable selectedKeys = [this.props.history.pathname];
 
@@ -275,15 +80,28 @@ class CustomSiderMenu extends React.Component {
         // console.log(this.props.history)
     }
 
+    componentDidMount() {
+        let that = this;
+        store.RouterChildList.map((item, index) => {
+            item.map((citem, cindex) => {
+                if (citem.key === that.props.history.location.pathname) {
+                    that.openKeys = [index.toString()]
+                    console.log(that.openKeys)
+                }
+            })
+        })
+    }
+
     onOpenChange = (openKeys) => {
         const latestOpenKey = openKeys.find(key => this.openKeys.indexOf(key) === -1);
+        console.log(latestOpenKey)
+
         if (this.rootSubmenKeys.indexOf(latestOpenKey) === -1) {
             if (this.openKeys.length === 1 && latestOpenKey) {
                 this.openKeys[this.openKeys.length] = latestOpenKey
             } else {
                 this.openKeys.length = 1
             }
-
         } else {
             this.openKeys = latestOpenKey ? [latestOpenKey] : []
         }
@@ -303,7 +121,7 @@ class CustomSiderMenu extends React.Component {
                 // defaultSelectedKeys={NavCountChildKey + 1}
             >
                 {
-                    NavList.map((item, index) =>
+                    store.NavList.map((item, index) =>
                         <SubMenu key={index} title={<span><Icon type={item.icon}/><span>{item.pathname}</span></span>}>
 
                             {item.children.map((citem, cindex) =>

@@ -265,7 +265,7 @@ const customResetFormData = (obj, key) => {
 
     }
 }
-const customSetData = (parms = {},obj, key) => {
+const commoncustomSetData = (parms = {},obj, key) => {
     // console.log(parms)
     // console.log(key)
     for (let i in parms) {
@@ -282,4 +282,4 @@ const customSetData = (parms = {},obj, key) => {
 }
 
 
-export {md5, customResetFormData,customSetData}
+export {md5, customResetFormData,commoncustomSetData}
