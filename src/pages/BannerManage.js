@@ -1,5 +1,5 @@
 import React from 'react';
-import {Form, Input, Button, Select, Modal} from 'antd'
+import {Form, Input, Button, Select, Modal, Popconfirm} from 'antd'
 import {observable} from 'mobx';
 import {observer} from 'mobx-react';
 // import store from '../store/index'
@@ -27,24 +27,7 @@ class BannerManageData {
             showTotal: (total, range) => `${range[0]}-${range[1]}  共${total}条记录`
 
         },
-        column: [{
-            title: 'Name',
-            dataIndex: 'name',
-            sorter: true,
-            render: name => `${name.first} ${name.last}`,
-            width: '20%',
-        }, {
-            title: 'Gender',
-            dataIndex: 'gender',
-            filters: [
-                {text: 'Male', value: 'male'},
-                {text: 'Female', value: 'female'},
-            ],
-            width: '20%',
-        }, {
-            title: 'Email',
-            dataIndex: 'email',
-        }],
+        column: [],
         loading: false,
     }
     @observable modalInfo = {
@@ -160,6 +143,37 @@ class BannerManage extends React.Component {
     // onRef = (ref) => {
     //     this.child = ref
     // }
+    componentWillMount() {
+        const column = [{
+            title: 'Name',
+            dataIndex: 'name',
+            render: name => `${name.first} ${name.last}`,
+            width: '20%',
+        }, {
+            title: 'Gender',
+            dataIndex: 'gender',
+
+            width: '20%',
+        }, {
+            title: 'Email',
+            dataIndex: 'email',
+        }, {
+            title: "操作",
+            dataIndex: "",
+            key: "x",
+            render: (text, record, index) => {
+                const Id = record.cell;
+                return <div>
+                    <a onClick={() => this.editArticle(Id)} href="javascript:;">编辑</a>
+                    <Popconfirm title="确定删除？" onConfirm={() => this.deleteArticle(Id)}>
+                        <a style={{marginLeft: 12}} href="javascript:;">删除</a>
+                    </Popconfirm>
+                </div>
+            }
+        }]
+        BannerManageStore.tabledata.column = column
+    }
+
     customResetFormData = (key) => {
         for (let i in BannerManageStore[key]) {
             if (Object.prototype.toString.call(key[i]) != "[object Object]") {

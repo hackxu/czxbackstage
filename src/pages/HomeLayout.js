@@ -39,14 +39,14 @@ class HomeIndexLayout extends React.Component {
                     trigger={null}
                     collapsible
                     collapsed={this.collapsed}
-                    style={{overflow: 'auto', height: '100vh', zIndex: '2', position: 'fixed', left: 0}}
+                    style={{overflow: 'auto', height: '100vh', zIndex: '12', position: 'fixed', left: 0}}
                 >
                     <div className="logo">穿藏线后台</div>
                     <CustomSiderMenuWithRouter/>
 
                 </Sider>
                 <Layout>
-                    <Header theme="dark" style={{padding: 0, position: 'fixed', zIndex: 1, width: '100%'}}>
+                    <Header theme="dark" style={{padding: 0, position: 'fixed', zIndex: 11, width: '100%'}}>
                         <div className="accountInfo">
                             <div className="accountname">admin</div>
                             <span>|</span>

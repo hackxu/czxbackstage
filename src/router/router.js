@@ -37,6 +37,7 @@ import CustomerManagePage from "../pages/CustomerManage"
 import CommentFormPage from "../pages/CommentForm"
 import CustomerListPage from "../pages/CustomerList"
 
+import AddInfoPage from "../pages/AddInfo"
 // import { Layout } from 'antd';
 // import { observer } from 'mobx-react'
 
@@ -51,7 +52,7 @@ class Routerdiv extends Component {
             <Router history={browserHistory}>
                 <Switch>
                     <Route path="/login" component={loginPage}></Route>
-                    <Route exact path="/" component={() => <Redirect to="/h/bannerManage"/>}></Route>
+                    <Route exact path="/" component={() => <Redirect to="/h/BannerManage"/>}></Route>
                     <Route path="/h" component={HomePageRouter}></Route>
                     <PrivateRoute component={NoMatch}></PrivateRoute>
                 </Switch>
@@ -64,7 +65,7 @@ const HomePageRouter = ({match, history}) => (
     <HomePage key="homepage" history={history}>
         <Switch>
 
-            <PrivateRoute exact path={match.url} component={() => <Redirect to="/h/bannerManage"/>}></PrivateRoute>
+            <PrivateRoute exact path={match.url} component={() => <Redirect to="/h/BannerManage"/>}></PrivateRoute>
             {/*{store.RouterList.map((item, index) => <PrivateRoute path={item.routepath} component={item.component}></PrivateRoute>)}*/}
 
             <PrivateRoute path={`${match.url}/BannerManage`} component={BannerManagePage}></PrivateRoute>
@@ -78,7 +79,7 @@ const HomePageRouter = ({match, history}) => (
             <PrivateRoute path={`${match.url}/TibetArea`} component={TibetAreaPage}></PrivateRoute>
             <PrivateRoute path={`${match.url}/Attractions`} component={AttractionsPage}></PrivateRoute>
             <PrivateRoute path={`${match.url}/AttractionsDistance`} component={AttractionsDistancePage}></PrivateRoute>
-            <PrivateRoute path={`${match.url}/TimeAreaPage`} component={TimeAreaPage}></PrivateRoute>
+            <PrivateRoute path={`${match.url}/TimeArea`} component={TimeAreaPage}></PrivateRoute>
             <PrivateRoute path={`${match.url}/RecommendedRaiders`} component={RecommendedRaidersPage}></PrivateRoute>
             <PrivateRoute path={`${match.url}/RecommendedTravel`} component={RecommendedTravelPage}></PrivateRoute>
             <PrivateRoute path={`${match.url}/SystemSetting`} component={SystemSettingPage}></PrivateRoute>
@@ -86,10 +87,12 @@ const HomePageRouter = ({match, history}) => (
             <PrivateRoute path={`${match.url}/AppVersion`} component={AppVersionPage}></PrivateRoute>
             <PrivateRoute path={`${match.url}/Feedback`} component={FeedbackPage}></PrivateRoute>
             <PrivateRoute path={`${match.url}/CustomerJourney`} component={CustomerJourneyPage}></PrivateRoute>
-            <PrivateRoute path={`${match.url}/AssignedFleetPage`} component={AssignedFleetPage}></PrivateRoute>
+            <PrivateRoute path={`${match.url}/AssignedFleet`} component={AssignedFleetPage}></PrivateRoute>
             <PrivateRoute path={`${match.url}/CustomerManage`} component={CustomerManagePage}></PrivateRoute>
             <PrivateRoute path={`${match.url}/CommentForm`} component={CommentFormPage}></PrivateRoute>
             <PrivateRoute path={`${match.url}/CustomerList`} component={CustomerListPage}></PrivateRoute>
+
+            <PrivateRoute path={`${match.url}/AddInfo`} component={AddInfoPage}></PrivateRoute>
             {/*<PrivateRoute path={`${match.url}/todo`} component={todoListPage}></PrivateRoute>*/}
             <PrivateRoute component={NoMatch}></PrivateRoute>
         </Switch>

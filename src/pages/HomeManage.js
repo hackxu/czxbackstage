@@ -232,15 +232,10 @@ class HomeManage extends React.Component {
             }
         })
             .then(function (response) {
-                // console.log(response);
-                // const pagination = {...HomeManageStore.tabledata.pagination}
-                //
-                // pagination.total = 200;
-                // console.log(response)
+
                 that.customSetData({
                     loading: false,
                     HomeBigList: response.results,
-                    // pagination: pagination,
                 }, "tabledata")
 
             })
@@ -248,7 +243,6 @@ class HomeManage extends React.Component {
                 console.log(error);
             });
 
-        // console.log(HomeManageStore)
     }
     editArticle = (id) => {
         console.log(id)
@@ -458,7 +452,6 @@ const expandedRowRender = (e) => {
             })
 
     };
-
     return (
         <Table
             columns={columns}

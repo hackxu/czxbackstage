@@ -8,23 +8,7 @@ import {Popconfirm, Button, Table} from 'antd'
 @observer
 class CommonTable extends React.Component {
     @observable  columns = [
-        ...this.props.tabledata.column,
-        {
-            title: "操作",
-            dataIndex: "",
-            key: "x",
-            render: (text, record, index) => {
-                const Id = record.cell;
-                return <div>
-                    <a onClick={() => this.props.editArticle(Id)} href="javascript:;">编辑</a>
-                    <Popconfirm title="确定删除？" onConfirm={() => this.props.deleteArticle(Id)}>
-                        <a style={{marginLeft: 12}} href="javascript:;">删除</a>
-                    </Popconfirm>
-                </div>
-            }
-        }
-
-
+        ...this.props.tabledata.column
     ];
 
 
@@ -60,11 +44,18 @@ class CommonTable extends React.Component {
         })
     }
     handleAddArticle = () => {
-        this.props.customSetData({
-            modalTitle: "新增文章",
-            modalVisible: true,
-            modalLoading: false,
-        }, "modalInfo")
+        console.log(this.props.isAdd)
+        if (this.props.isAdd) {
+            this.props.customSetData({
+                isAdd: true
+            }, 'isAddInfo')
+        } else {
+            this.props.customSetData({
+                modalTitle: "新增文章",
+                modalVisible: true,
+                modalLoading: false,
+            }, "modalInfo")
+        }
     }
 
     render() {
@@ -90,8 +81,9 @@ class CommonTable extends React.Component {
                     <Button type="primary" onClick={this.handleAddArticle} icon="plus">添加</Button>
 
                     {hasSelected ?
-                        <Popconfirm title="确定删除？" onConfirm={() => this.props.deleteArticle(selectedRowKeys)}> <Button
-                            style={{marginLeft: 20}} type="primary">批量删除</Button> </Popconfirm> : ''}
+                        <Popconfirm title="确定删除？" onConfirm={() => this.props.deleteArticle(selectedRowKeys)}>
+                            <Button
+                                style={{marginLeft: 20}} type="primary">批量删除</Button> </Popconfirm> : ''}
                 </div>
 
                 <Table loading={loading}
