@@ -394,15 +394,15 @@ class AddInfo extends React.Component {
             image: e
         })
     }
-    setContent = (e) =>{
-        console.log("草")
-        this.props.customSetData({
-            content: e
-        }, "FormData")
-        this.props.form.setFieldsValue({
-            content: e
-        })
-    }
+    // setContent = (e) =>{
+    //     console.log("草")
+    //     this.props.customSetData({
+    //         content: e
+    //     }, "FormData")
+    //     this.props.form.setFieldsValue({
+    //         content: e
+    //     })
+    // }
     handleConfirmIndex = (rule, value, callback) => {
         console.log(value)
         if (value < 0) {
@@ -469,7 +469,7 @@ class AddInfo extends React.Component {
                         )}
                     </FormItem>
                     <FormItem label="编辑文章" className="RichText">
-                        <RichText customerSetContent={this.setContent}></RichText>
+                        {/*<RichText customerSetContent={this.setContent}></RichText>*/}
                         {getFieldDecorator('content', {
                             // initialValue: image,
                             rules: [{required: true, message: '请输入文字'}]

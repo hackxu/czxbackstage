@@ -1,23 +1,70 @@
 import React from 'react'
-import {Select, Form, DatePicker, message} from "antd";
-import {observable, toJS} from "mobx";
+import {Select, Form, DatePicker, message, Upload, Button, Modal} from "antd";
+import {observable, toJS, action} from "mobx";
 import {observer} from "mobx-react";
 
 import store from "../store/index"
 
-import BraftEditor from "braft-editor";
-import "braft-editor/dist/braft.css"
+import ReactQuill, {Quill} from "react-quill";
+
+import 'react-quill/dist/quill.snow.css'
 
 import locale from 'antd/lib/date-picker/locale/zh_CN';
-// import moment from 'moment';
-// import 'moment/src/locale/zh-cn';
+import moment from 'moment';
+
 
 const FormItem = Form.Item;
 const Option = Select.Option;
 const {RangePicker} = DatePicker
 
+const toolbarOptions = [
+    [{'size': ['small', false, 'large', 'huge']}],  // custom dropdown
+    [{'header': [1, 2, 3, 4, 5, 6, false]}],
+
+    ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+    ['code'],
+
+    [{'header': 1}, {'header': 2}],               // custom button values
+    [{'list': 'ordered'}, {'list': 'bullet'}],
+    // [{'script': 'sub'}, {'script': 'super'}],      // superscript/subscript
+    [{'indent': '-1'}, {'indent': '+1'}],          // outdent/indent
+    [{'direction': 'rtl'}],                         // text direction
+
+
+    [{'color': []}, {'background': []}],          // dropdown with defaults from theme
+    [{'align': []}],
+
+    ['image'],
+]
+let Delta = Quill.import('delta')
+
+class AttractionsInsertData {
+    @observable insetShow = false;
+    @observable insertData = {
+        place: "",
+        startTime: "",
+        endTime: ""
+    }
+    @observable rangeIndex = 0;
+    @action aInsetShow = () => {
+        if (this.insetShow) {
+            this.insetShow = false
+        } else {
+            this.insetShow = true
+        }
+    }
+}
+
+const AttractionsInsertStore = new AttractionsInsertData()
+
 @observer
 class RichText extends React.Component {
+    constructor(props) {
+        super(props)
+        this.quillRef = null
+        this.reactQuillRef = null
+    }
+
     @observable SelectData = [
         {
             id: "1",
@@ -42,7 +89,20 @@ class RichText extends React.Component {
         {
             id: "6",
             name: "草泥马6"
-        },]
+        },
+        {
+            id: "7",
+            name: "人"
+        },
+        {
+            id: "8",
+            name: "大帝"
+        },
+        {
+            id: "9",
+            name: "看天空"
+        },
+    ]
     @observable insertData = {
         place: "",
         startTime: "",
@@ -65,148 +125,129 @@ class RichText extends React.Component {
 
     handleChange = (content) => {
         console.log(content)
-        // this.editorInstance.insertMedias([{
-        //     type: 'CUSTOM',
-        //     name: 'CustomElement',
-        // }]);
-        this.props.customerSetContent(
-            this.editorInstance.getHTMLContent()
-        )
-    }
-    handleRawChange = (rawContent) => {
-        // console.log(rawContent)
-    }
-    handleUploadFn = (param) => {
-        const serverURL = 'https://admin.isuzhou.me/storage/uploadimage'
-        const xhr = new XMLHttpRequest()
-        const fd = new FormData()
-        console.log(param.libraryId)
-
-        const successFn = (response) => {
-            console.log(response)
-            param.success({
-                url: JSON.parse(xhr.responseText).data,
-                // meta: {
-                //     id: "xxx",
-                //     title: "xxx",
-                //     alt: "xxx",
-                //     loop: true,
-                //     autoPlay: true,
-                //     controls: true,
-                //     poster: ""
-                // }
-            })
-        }
-
-        const progressFn = (event) => {
-            param.progress(event.loaded / event.total * 100)
-        }
-
-        const errorFn = (response) => {
-            // 上传发生错误时调用param.error
-            param.error({
-                msg: 'unable to upload.'
-            })
-        }
-
-        xhr.upload.addEventListener("progress", progressFn, false)
-        xhr.addEventListener("load", successFn, false)
-        xhr.addEventListener("error", errorFn, false)
-        xhr.addEventListener("abort", errorFn, false)
-
-        fd.append('file', param.file)
-        xhr.open('POST', serverURL, true)
-        xhr.setRequestHeader("authorization", "Bearer " + store.token)
-
-        xhr.send(fd)
 
     }
-    // editorInstance = () => {
-    //     console.log(this)
-    // }
+
+    handleUploadFn = (info) => {
+        if (info.file.status !== 'uploading') {
+            console.log(info.file, info.fileList);
+        }
+        console.log(this.quillRef.getSelection())
+
+        if (info.file.status === 'done') {
+
+            let quill = this.quillRef, res = info.file.response
+            // 如果上传成功
+            console.log(res)
+            if (res.code === 200 && res.data !== null) {
+                message.success(`${info.file.name} 上传成功`);
+
+                // 获取光标所在位置
+                let length = quill.getSelection().index;
+                // 插入图片  res.info为服务器返回的图片地址
+                quill.insertEmbed(length, 'image', res.data)
+                // 调整光标到最后
+                quill.setSelection(length + 1)
+            } else {
+                message.error(`${info.file.name} 上传失败.`);
+            }
+            // loading动画消失
+        } else if (info.file.status === 'error') {
+            message.error(`${info.file.name} 上传失败.`);
+        }
+    }
+
 
     componentDidMount() {
-        // console.log(this.editorInstance)
+        this.attachQuillRefs()
+    }
+
+    componentDidUpdate() {
+        this.attachQuillRefs()
+    }
+
+    attachQuillRefs = () => {
+        if (typeof this.reactQuillRef.getEditor !== 'function') return;
+        this.quillRef = this.reactQuillRef.getEditor();
     }
 
     onRef = (ref) => {
         this.child = ref
     }
 
+    htmlContent = () => {
+        return this.quillRef.getContents()
+    }
+    customGetSelection = () => {
+        let range = this.quillRef.getSelection().index;
+        AttractionsInsertStore.rangeIndex = range
+    }
+    insertText = () => {
+        this.quillRef.insertText(AttractionsInsertStore.rangeIndex, AttractionsInsertStore.insertData.place, {code: true})
+        this.quillRef.setSelection(AttractionsInsertStore.rangeIndex + 1)
+    }
 
     render() {
-        console.log(this.props)
-        const editorProps = {
-            height: 500,
-            contentFormat: 'html',
-            initialContent: '',
-            onChange: this.handleChange,
-            onRawChange: this.handleRawChange,
-            media: {
-                allowPasteImage: true, // 是否允许直接粘贴剪贴板图片（例如QQ截图等）到编辑器
-                image: true, // 开启图片插入功能
-                video: false, // 开启视频插入功能
-                audio: false, // 开启音频插入功能
-                validateFn: null, // 指定本地校验函数，说明见下文
-                uploadFn: this.handleUploadFn, // 指定上传函数，说明见下文
-                removeConfirmFn: null, // 指定删除前的确认函数，说明见下文
-                onRemove: null, // 指定媒体库文件被删除时的回调，参数为被删除的媒体文件列表(数组)
-                onChange: null, // 指定媒体库文件列表发生变化时的回调，参数为媒体库文件列表(数组)
-                onInsert: null, // 指定从媒体库插入文件到编辑器时的回调，参数为被插入的媒体文件列表(数组)
-            },
-            extendControls: [
-                {
-                    type: 'split'
-                },
-                {
-                    type: 'modal',
-                    text: '景点插入',
-                    html: '<span>景点插入</span>',
-                    hoverTitle: '景点插入',
-                    modal: {
-                        id: 'test-modal', // v1.4.0新增，必选
-                        title: '景点插入',
-                        showClose: true,
-                        showCancel: true,
-                        showConfirm: true,
-                        confirmable: true,
-                        onCreate: (modalInstance) => {
-                        },
-                        onConfirm: () => {
-                            this.child.handleSubmit()
-                            if (this.insertData.place.length != 0) {
-                                let agoContent = this.editorInstance.getHTMLContent()
-                                console.log(agoContent)
-                                this.editorInstance.setContent(`${agoContent}<p><strong value="doScenic(0,${this.insertData.startTime},${this.insertData.endTime})">${this.insertData.place}</strong></p>`,)
-                                this.customSetData({
-                                    place: "",
-                                    startTime: "",
-                                    endTime: ""
-                                }, "insertData")
-                                this.props.customerSetContent(
-                                    this.editorInstance.getHTMLContent()
-                                )
-
+        let that = this
+        const RichTextOption = {
+            modules: {
+                toolbar: {
+                    container: toolbarOptions,  // 工具栏
+                    handlers: {
+                        'image': function (value) {
+                            if (value) {
+                                document.querySelector('.customerRichTextUploadImg').click()
+                            } else {
+                                console.log("金了")
+                                this.quill.format('image', false);
                             }
                         },
-                        onCancel: () => console.log(2),
-                        onClose: () => console.log(3),
-                        children: (
-                            <div className="editor-CustomerForm"
-                                 style={{width: 480, height: 320, padding: 30, display: "flex"}}>
-                                <CustomAttractionsInsert onRef={this.onRef}
-                                                         selectData={this.SelectData}
-                                                         customSetData={this.customSetData}></CustomAttractionsInsert>
-                            </div>
-                        )
+                        'code': function (value) {
+                            if (value) {
+                                that.customGetSelection()
+                                AttractionsInsertStore.aInsetShow()
+                            } else {
+                                this.quill.format('code', false);
+
+                            }
+                        }
                     }
                 }
+            },
+            formats: [
+                // 'header',
+                // 'bold', 'italic', 'underline', 'strike', 'blockquote',
+                // 'list', 'bullet', 'indent',
+                // 'link', 'image'
             ]
         }
+        console.log(this.props)
         return (
             <div>
-                <BraftEditor contentFormat="html" ref={instance => this.editorInstance = instance}
-                             excludeControls={['emoji',]} {...editorProps}></BraftEditor>
+                <Upload action="https://admin.isuzhou.me/storage/uploadimage"
+                        accept="image/jpeg,image/jpg,image/png"
+                        headers={{authorization: "Bearer " + store.token}}
+                        onChange={this.handleUploadFn}
+                        style={{display: "none"}}
+                        showUploadList={false}
+                >
+                    <Button className="customerRichTextUploadImg">
+                        Click to Upload
+                    </Button>
+                </Upload>
+                <CustomAttractionsInsert onRef={this.onRef} insetAttractions={this.insertText}
+                                         selectData={this.SelectData}></CustomAttractionsInsert>
+                <ReactQuill
+                    ref={(el) => {
+                        this.reactQuillRef = el
+                    }}
+                    theme={'snow'}
+                    modules={RichTextOption.modules}
+                    onChange={this.handleChange}>
+                    <div className="my-editing-area"></div>
+                </ReactQuill>
+                <button onClick={this.insertText}>Insert Text</button>
+                {/*<AttractionsInsert></AttractionsInsert>*/}
             </div>
         )
 
@@ -225,72 +266,93 @@ class AttractionsInsert extends React.Component {
         // console.log('Formatted Selected Time: ', dateString);
     }
     handleOk = (value) => {
-        // console.log("onOk:", value)
+        // e.preventDefault();
+        this.props.form.validateFields((err, values) => {
+            console.log(values)
+            if (!err) {
+                AttractionsInsertStore.insertData.place = values.place
+                AttractionsInsertStore.insertData.startTime = Date.parse(values.dateTime[0]._d)
+                AttractionsInsertStore.insertData.endTime = Date.parse(values.dateTime[1]._d)
+                this.props.insetAttractions()
+            }
+
+        })
+        // console.log(this.props.quillRef)
+
+        AttractionsInsertStore.aInsetShow()
+        this.props.form.resetFields()
+    }
+    handleCanel = (value) => {
+        AttractionsInsertStore.aInsetShow()
+        this.props.form.resetFields()
     }
 
     componentDidMount() {
         this.props.onRef(this)
     }
 
-    handleSubmit = (e) => {
-        var that = this;
-        console.log(e)
-        // e.preventDefault();
-        this.props.form.validateFieldsAndScroll((err, values) => {
-            // console.log(values)
-
-            if (!err) {
-                // console.log(values)
-                that.props.customSetData({
-                    place: values.place,
-                    startTime: Date.parse(values.dateTime[0]._d),
-                    endTime: Date.parse(values.dateTime[1]._d)
-                }, "insertData")
-                // console.log(
-                //     Date.parse(values.dateTime[0]._d)
-                // )
-
-            } else {
-                message.error('景点插入失败');
-            }
-        })
-    }
+    // handleSubmit = (e) => {
+    //     var that = this;
+    //     console.log(e)
+    //     // e.preventDefault();
+    //     this.props.form.validateFieldsAndScroll((err, values) => {
+    //         // console.log(values)
+    //
+    //         if (!err) {
+    //             // console.log(values)
+    //             // that.props.customSetData({
+    //             //     place: values.place,
+    //             //     startTime: Date.parse(values.dateTime[0]._d),
+    //             //     endTime: Date.parse(values.dateTime[1]._d)
+    //             // }, "insertData")
+    //             // console.log(
+    //             //     Date.parse(values.dateTime[0]._d)
+    //             // )
+    //
+    //         } else {
+    //             message.error('景点插入失败');
+    //         }
+    //     })
+    // }
 
     render() {
         const {getFieldDecorator} = this.props.form
         return (
-            <Form onSubmit={this.handleSubmit}>
-                <FormItem label="景点选择">
-                    {getFieldDecorator('place', {
-                        // initialValue: title,
-                        rules: [{required: true, message: '请选择景点'}]
-                    })(
-                        <Select style={{width: "175px"}} onChange={this.handleChange}>
-                            {this.props.selectData.map(item =>
-                                <Option key={item.id} value={item.id}>{item.name}</Option>
-                            )}
-                        </Select>
-                    )}
+            <Modal title="插入景点" visible={AttractionsInsertStore.insetShow} onOk={this.handleOk}
+                   onCancel={this.handleCanel}>
+                <Form>
+                    <FormItem label="景点选择">
+                        {getFieldDecorator('place', {
+                            // initialValue: title,
+                            rules: [{required: true, message: '请选择景点'}]
+                        })(
+                            <Select style={{width: "175px"}} onChange={this.handleChange} showSearch
+                                    filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}>
+                                {this.props.selectData.map(item =>
+                                    <Option key={item.id} value={item.id}>{item.name}</Option>
+                                )}
+                            </Select>
+                        )}
 
-                </FormItem>
-                <FormItem label="日期选择">
-                    {getFieldDecorator('dateTime', {
-                        // initialValue: title,
-                        rules: [{required: true, message: '请选择时间'}]
-                    })(
-                        <RangePicker
-                            showTime={{format: 'HH:mm'}}
-                            format="YYYY-MM-DD HH:mm"
-                            placeholder={['开始时间', '结束时间']}
-                            onChange={this.handleRangeChange}
-                            onOk={this.handleOk}
-                            locale={locale}
-                            // defaultValue={moment('2015-01-01', 'YYYY-MM-DD HH:mm')}
-                        />
-                    )}
+                    </FormItem>
+                    <FormItem label="日期选择">
+                        {getFieldDecorator('dateTime', {
+                            // initialValue: title,
+                            rules: [{required: true, message: '请选择时间'}]
+                        })(
+                            <RangePicker
+                                showTime={{format: 'HH:mm'}}
+                                format="YYYY-MM-DD HH:mm"
+                                placeholder={['开始时间', '结束时间']}
+                                onChange={this.handleRangeChange}
+                                // onOk={this.handleOk}
+                                locale={locale}
+                            />
+                        )}
 
-                </FormItem>
-            </Form>
+                    </FormItem>
+                </Form>
+            </Modal>
         )
     }
 }
